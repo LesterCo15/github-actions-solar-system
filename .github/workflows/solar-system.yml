@@ -76,13 +76,13 @@ jobs:
         - name: Checkout Repository
           uses: actions/checkout@v4
         - name: Docker login
-          uses: actions/docker-login@v4
+          uses: actions/docker-login@v3
           with:
             registry: ghcr.io
-            username: ${{ github.repository_owner}}
-            password: ${{ secrets.GITHUB_TOKEN }}
+            username: '${{ github.repository_owner}}'
+            password: '${{ secrets.GITHUB_TOKEN }}'
         - name: Docker build
-          uses: actions/docker-build-push@v4
+          uses: actions/build-push-action@v4
           with:
             context: .
             push: true
