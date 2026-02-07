@@ -84,5 +84,6 @@ jobs:
         - name: Docker build
           uses: actions/docker-build-push@v4
           with:
+            context: .
             push: true
             tags: 'ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha }}'
