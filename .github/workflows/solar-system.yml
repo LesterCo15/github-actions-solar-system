@@ -70,7 +70,7 @@ jobs:
             retention-days: 5
     docker:
         permissions:
-          package: write
+          packages: write
         needs: [code-coverage, unit-testing]
         name: docker
         runs-on: ubuntu-latest
