@@ -79,8 +79,8 @@ jobs:
           uses: actions/docker-login@v4
           with:
             registry: ghcr.io
-            username: LesterCo15
-            password: secrets.GITHUB_TOKEN
+            username: ${{ github.repository_owner}}
+            password: ${{ secrets.GITHUB_TOKEN }}
         - name: Docker build
           uses: actions/docker-build-push@v4
           with:
