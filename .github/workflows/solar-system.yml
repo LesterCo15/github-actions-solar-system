@@ -106,11 +106,10 @@ jobs:
         environment:
           name: development
         steps:
-          - name: Install k8s
+          - name: install cluster
             uses: helm/kind-action@v1
           
-          - name: Deploy on k8s
-            run: |
+          - run: |
               sleep 60
               kubectl -n kube-system get pod
               set +e
