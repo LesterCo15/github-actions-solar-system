@@ -86,12 +86,18 @@ jobs:
             registry: ghcr.io
             username: '${{ github.repository_owner}}'
             password: '${{ secrets.GITHUB_TOKEN }}'
+
+        - uses: docker/metadata-action@v5
+          id: meta
+          with:
+            images: ghcr.io/${{ github.repository_owner }}/solar-system
+
         - name: Docker build
           uses: docker/build-push-action@v4
           with:
             context: .
             push: true
-            tags: 'ghcr.io/${{ github.repository_owner }}/solar-system:${{ github.sha }}'
+            tags: ${{ steps.meta.outputs.tags }}
 
     dev-deploy:
         needs: docker
