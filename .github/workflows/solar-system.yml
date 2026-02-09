@@ -111,7 +111,7 @@ jobs:
           - name: Set App Ingress Host URL
             id: set-ingress-host-address
             run: |
-              HOST=$(kubectl -n development get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
+              HOST=$(kubectl -n development get ingress -o jsonpath='{.items[0].spec.rules[0].host}'
               echo "APP_INGRESS_URL=$HOST" >> "$GITHUB_OUTPUT"
 
           - name: install cluster
