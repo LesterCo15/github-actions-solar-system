@@ -125,7 +125,7 @@ jobs:
               set -e
               echo "kubectl returned $?"
               kubectl -n default get pod
-              INGRESS_HOST=$(kubectl get ingress solar-system -o jsonpath='{.spec.rules[0].host}')
+              INGRESS_HOST=$(kubectl get ingress solar -o jsonpath='{.spec.rules[0].host}')
               echo "url=$INGRESS_HOST" >> $GITHUB_OUTPUT
 
     integration-test:
