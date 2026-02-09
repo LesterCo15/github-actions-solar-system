@@ -108,11 +108,11 @@ jobs:
         outputs:
           APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_URL }}
         steps:
+          - uses: actions/checkout@v4
           - name: install cluster
             uses: helm/kind-action@v1
           
           - run: |
-              sleep 60
               kubectl -n kube-system get pod
               set +e
               REPO_OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
