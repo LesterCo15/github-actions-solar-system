@@ -105,8 +105,6 @@ jobs:
         runs-on: ubuntu-latest
         environment:
           name: development
-        outputs:
-          APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_URL }}
         steps:
           - uses: actions/checkout@v4
           - name: install cluster
@@ -123,11 +121,6 @@ jobs:
               set -e
               echo "kubectl returned $?"
               kubectl -n default get pod
-          - name: Set App Ingress Host URL
-            id: set-ingress-host-address
-            run: |
-              HOST=$(kubectl -n development get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
-              echo "APP_INGRESS_URL=$HOST" >> "$GITHUB_OUTPUT"
 
 
     integration-test:
