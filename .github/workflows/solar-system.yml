@@ -107,35 +107,69 @@ jobs:
           name: development
 
         outputs:
-          APP_INGRESS_URL: ${{ steps.get-url.outputs.url }}
+          APP_INGRESS_URL: ${{ steps.get-url.outputs.APP_INGRESS_URL }}
 
         steps:
           - uses: actions/checkout@v4
           - name: install cluster
             uses: helm/kind-action@v1
-          - id: get-url
+          - name: Install NGINX Ingress Controller (kind)
             run: |
+              kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+              kubectl -n ingress-nginx wait --for=condition=Ready pod -l app.kubernetes.io/component=controller --timeout=180s
+
+          - id: get-url
+            shell: bash
+            run: |
+              set -euo pipefail
               NS=default
               APP=solar
+              REPO_OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
 
+              # Deploy app as a Deployment (NOT kubectl run)
+              cat <<EOF | kubectl -n "$NS" apply -f -
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: ${APP}
+              spec:
+                replicas: 1
+                selector:
+                  matchLabels:
+                    app: ${APP}
+                template:
+                  metadata:
+                    labels:
+                      app: ${APP}
+                  spec:
+                    containers:
+                    - name: ${APP}
+                      image: ghcr.io/${REPO_OWNER_LC}/solar-system:${{ github.sha }}
+                      ports:
+                      - containerPort: 3000
+                      env:
+                      - name: MONGO_URI
+                        value: "${{ env.MONGO_URI }}"
+                      - name: MONGO_USERNAME
+                        value: "${{ env.MONGO_USERNAME }}"
+                      - name: MONGO_PASSWORD
+                        value: "${{ secrets.MONGO_PASSWORD }}"
+              EOF
 
+              # Apply service + ingress
               kubectl -n "$NS" apply -f k8s/service.yaml
               kubectl -n "$NS" apply -f k8s/ingress.yaml
 
-              kubectl -n "$NS" wait --for=condition=available deploy/"$APP" --timeout=180s 2>/dev/null || true
+              # Wait for rollout
+              kubectl -n "$NS" rollout status deploy/"$APP" --timeout=180s
 
-              kubectl -n kube-system get pod
-              set +e
-              REPO_OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
-              kubectl run solar --image ghcr.io/${REPO_OWNER_LC}/solar-system:${{ github.sha }} \
-                --env MONGO_URI=${{ env.MONGO_URI }} \
-                --env MONGO_USERNAME=${{ env.MONGO_USERNAME }} \
-                --env MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
-              set -e
-              echo "kubectl returned $?"
-              kubectl -n default get pod
+              # Read host from ingress spec (works reliably on kind)
               INGRESS_HOST=$(kubectl -n "$NS" get ingress "$APP" -o jsonpath='{.spec.rules[0].host}')
-              echo "url=https://${INGRESS_HOST}" >> "$GITHUB_OUTPUT"
+              URL="http://${INGRESS_HOST}"
+
+              # Export as step output
+              echo "APP_INGRESS_URL=${URL}" >> "$GITHUB_OUTPUT"
+
 
 
     integration-test:
