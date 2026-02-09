@@ -115,6 +115,8 @@ jobs:
             uses: helm/kind-action@v1
           - id: get-url
             run: |
+              NS=default
+              INGRESS_NAME=solar
               kubectl -n kube-system get pod
               set +e
               REPO_OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
@@ -125,8 +127,9 @@ jobs:
               set -e
               echo "kubectl returned $?"
               kubectl -n default get pod
-              INGRESS_HOST=$(kubectl -n kube-system get $INGRESS_NAME -o jsonpath='{.spec.rules[0].host}')
-              echo "url=$INGRESS_HOST" >> $GITHUB_OUTPUT
+              INGRESS_HOST=$(kubectl -n "$NS" get ingress "$INGRESS_NAME" -o jsonpath='{.spec.rules[0].host}')
+              echo "url=https://${INGRESS_HOST}" >> "$GITHUB_OUTPUT"
+
 
     integration-test:
         needs: dev-deploy
