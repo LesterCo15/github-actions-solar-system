@@ -108,12 +108,6 @@ jobs:
         outputs:
           APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_URL }}
         steps:
-          - name: Set App Ingress Host URL
-            id: set-ingress-host-address
-            run: |
-              HOST=$(kubectl -n development get ingress -o jsonpath='{.items[0].spec.rules[0].host}'
-              echo "APP_INGRESS_URL=$HOST" >> "$GITHUB_OUTPUT"
-
           - name: install cluster
             uses: helm/kind-action@v1
           
@@ -129,7 +123,12 @@ jobs:
               set -e
               echo "kubectl returned $?"
               kubectl -n default get pod
-              sleep 10
+          - name: Set App Ingress Host URL
+            id: set-ingress-host-address
+            run: |
+              HOST=$(kubectl -n development get ingress -o jsonpath='{.items[0].spec.rules[0].host}')
+              echo "APP_INGRESS_URL=$HOST" >> "$GITHUB_OUTPUT"
+
 
     integration-test:
         needs: dev-deploy
