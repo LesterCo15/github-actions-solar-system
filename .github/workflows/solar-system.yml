@@ -105,12 +105,16 @@ jobs:
         runs-on: ubuntu-latest
         environment:
           name: development
+
+        outputs:
+          APP_INGRESS_URL: ${{ steps.get-url.outputs.url }}
+
         steps:
           - uses: actions/checkout@v4
           - name: install cluster
             uses: helm/kind-action@v1
-          
-          - run: |
+          - id: get-url
+            run: |
               kubectl -n kube-system get pod
               set +e
               REPO_OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
@@ -121,7 +125,8 @@ jobs:
               set -e
               echo "kubectl returned $?"
               kubectl -n default get pod
-
+              INGRESS_HOST=$(kubectl -n development get ingress solar-system -o jsonpath='{.spec.rules[0].host}')
+              echo "url=$INGRESS_HOST" >> $GITHUB_OUTPUT
 
     integration-test:
         needs: dev-deploy
