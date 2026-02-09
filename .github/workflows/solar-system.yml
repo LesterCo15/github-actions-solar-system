@@ -116,7 +116,14 @@ jobs:
           - id: get-url
             run: |
               NS=default
-              INGRESS_NAME=solar
+              APP=solar
+
+
+              kubectl -n "$NS" apply -f k8s/service.yaml
+              kubectl -n "$NS" apply -f k8s/ingress.yaml
+
+              kubectl -n "$NS" wait --for=condition=available deploy/"$APP" --timeout=180s 2>/dev/null || true
+
               kubectl -n kube-system get pod
               set +e
               REPO_OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
@@ -127,7 +134,7 @@ jobs:
               set -e
               echo "kubectl returned $?"
               kubectl -n default get pod
-              INGRESS_HOST=$(kubectl -n "$NS" get ingress "$INGRESS_NAME" -o jsonpath='{.spec.rules[0].host}')
+              INGRESS_HOST=$(kubectl -n "$NS" get ingress "$APP" -o jsonpath='{.spec.rules[0].host}')
               echo "url=https://${INGRESS_HOST}" >> "$GITHUB_OUTPUT"
 
 
